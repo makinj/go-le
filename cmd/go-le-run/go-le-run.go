@@ -29,11 +29,14 @@ func main() {
 	var cfg app.Config
 	err := config.Load(*cfgDir, "app", &cfg)
 	if err != nil {
-		log.Fatalf("Error Loading configuration for application: %s", err)
+		log.Fatalf("Error loading configuration for application: %s", err)
 	}
 
 	//Create app from config
-	a := app.New(cfg)
+	a, err := app.New(cfg)
+	if err != nil {
+		log.Fatalf("Error creating application: %s", err)
+	}
 
 	//Start app
 	log.Println("Starting App")

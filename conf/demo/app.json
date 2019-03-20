@@ -1,3 +1,11 @@
 {
-	"name":"test"
+	"name":"test",
+	"modules":[
+		{
+			"type":"mock",
+			"config":{
+				"name":"module1"
+			}
+		}
+	]
 }
