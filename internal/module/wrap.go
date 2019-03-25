@@ -96,6 +96,10 @@ func (w *Wrap) Stop() {
 	return
 }
 
-func (w Wrap) GetModuleConfigurer() (interface{}, error) {
+func (w *Wrap) GetModuleConfigurer() (interface{}, error) {
 	return w.manifest.MapConfig(w.modconf)
+}
+
+func (w *Wrap) GetErrChan() chan error {
+	return w.errchan
 }

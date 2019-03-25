@@ -71,8 +71,10 @@ func (a *App) handleErrs(errchan chan Error) {
 	case err := <-(a.controller.GetErrChan()):
 		if err != nil {
 			errchan <- fmt.Errorf("Controller received error: %s\n", err)
+		} else {
+			errchan <- fmt.Errorf("Controller stopped running\n")
+			a.Kill()
 		}
-		a.Kill()
 	}
 
 	return

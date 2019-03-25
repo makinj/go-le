@@ -45,6 +45,8 @@ func (c *Controller) RegisterModule(wconf WrapConfigurer) error {
 		return err
 	}
 
+	go c.HandleWrapErrors(w)
+
 	err = c.Repo.Register(w)
 	if err != nil {
 		return err
@@ -71,4 +73,11 @@ func (c *Controller) StopModules() {
 
 func (c *Controller) GetErrChan() chan error {
 	return c.ErrChan
+}
+
+func (c *Controller) HandleWrapErrors(w *Wrap) {
+	errchan := w.GetErrChan()
+	for err := range errchan {
+		c.ErrChan <- err
+	}
 }

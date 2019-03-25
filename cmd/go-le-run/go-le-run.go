@@ -48,6 +48,7 @@ func main() {
 		log.Println("Received interrupt signal")
 		log.Println("Killing application...")
 		a.Kill()
+
 	case appErr := <-errchan:
 		if appErr != nil {
 			log.Printf("App received error: %s\n", appErr)
