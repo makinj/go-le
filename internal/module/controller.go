@@ -81,3 +81,5 @@ func (c *Controller) HandleWrapErrors(w *Wrap) {
 		c.ErrChan <- err
 	}
 }
+
+//TKTK add AddTask

@@ -1,5 +1,7 @@
 package module
 
+import "fmt"
+
 type WrapConfig struct {
 	Type   string
 	Config map[string]interface{}
@@ -61,31 +63,34 @@ func (w *Wrap) Running() bool {
 }
 
 func (w *Wrap) loop() {
-	defer close(w.running)
-	defer close(w.errchan)
+	defer w.Stop()
 
 	for w.Running() {
-		moderrs := make(chan error)
-
 		m, err := w.manifest.NewModule(w)
 		if err != nil {
 			w.errchan <- err
 			return
 		}
 
-		go m.Run()
+		m.Start()
+
 		w.module = m
 
-		select {
-		case err, ok := <-moderrs:
-			if ok {
-				w.errchan <- err
-			}
-		case <-w.running:
-		}
-		//TODO add something to kill the module
-		close(moderrs)
+		for m.Running() {
 
+			select {
+			case err, ok := <-(m.GetErrChan()):
+				if err != nil && ok {
+					fmt.Println("wrap loop err: ", err)
+					w.errchan <- err
+				}
+				if !ok {
+					m.Stop()
+				}
+			case <-w.running:
+				m.Stop()
+			}
+		}
 	}
 	return
 }
@@ -103,3 +108,5 @@ func (w *Wrap) GetModuleConfigurer() (interface{}, error) {
 func (w *Wrap) GetErrChan() chan error {
 	return w.errchan
 }
+
+//TKTK add invoke function
