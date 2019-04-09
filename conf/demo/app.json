@@ -5,7 +5,8 @@
 			"type":"mock",
 			"config":{
 				"name":"module1"
-			}
+			},
+			"id":"module1"
 		}
 	]
 }

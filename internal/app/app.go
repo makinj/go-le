@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 
+	"github.com/makinj/go-le/internal/lifecycle"
 	"github.com/makinj/go-le/internal/module"
 	"github.com/makinj/go-le/modules/mock"
 )
@@ -17,8 +18,8 @@ type Configurer interface {
 type App struct {
 	config     Configurer
 	name       string
-	running    chan struct{}
 	controller *module.Controller
+	handle     *lifecycle.Handle
 }
 
 //New will create a new app
@@ -42,38 +43,33 @@ func New(c Configurer) (a *App, err error) {
 
 	}
 
+	handle, err := lifecycle.NewHandle()
+	if err != nil {
+		return nil, err
+	}
+
 	a = &App{
 		name:       c.GetName(),
 		controller: cont,
+		handle:     handle,
 	}
+
+	go a.handleErrs()
 
 	return a, nil
 }
 
 //Run starts the application loop goroutine and provides the error channel for the running application
-func (a *App) Run() chan Error {
-	a.running = make(chan struct{})
-
-	errchan := make(chan Error, 1)
-	go a.handleErrs(errchan)
-
+func (a *App) Start() {
+	a.handle.ShouldStart()
 	go a.controller.StartModules()
-
-	return errchan
+	a.handle.Started()
 }
 
-func (a *App) handleErrs(errchan chan Error) {
-	defer close(errchan)
-
-	select {
-	case <-a.running:
-		break
-	case err := <-(a.controller.GetErrChan()):
+func (a *App) handleErrs() {
+	for err := range a.controller.GetErrChan() {
 		if err != nil {
-			errchan <- fmt.Errorf("Controller received error: %s\n", err)
-		} else {
-			errchan <- fmt.Errorf("Controller stopped running\n")
-			a.Kill()
+			a.handle.AddError(fmt.Errorf("Controller received error: %s\n", err))
 		}
 	}
 
@@ -81,12 +77,34 @@ func (a *App) handleErrs(errchan chan Error) {
 }
 
 //Kill instructs the main goroutine to kill the application
-func (a *App) Kill() {
-	close(a.running)
+func (a *App) Stop() {
+	a.handle.ShouldStop()
+	a.controller.StopModules().Wait()
+	a.handle.Stopped()
 	return
 }
 
 //GetName returns the app name
 func (a *App) GetName() string {
 	return a.name
+}
+
+func (a *App) GetErrChan() chan error {
+	return a.handle.GetErrChan()
+}
+
+func (a *App) GetIsRunningChan() chan interface{} {
+	return a.handle.IsRunningChan
+}
+
+func (a *App) GetIsRunning() bool {
+	return a.handle.GetIsRunning()
+}
+
+func (a *App) GetShouldRunChan() chan interface{} {
+	return a.handle.ShouldRunChan
+}
+
+func (a *App) GetShouldRun() bool {
+	return a.handle.GetShouldRun()
 }

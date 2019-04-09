@@ -3,6 +3,7 @@ package mock
 import (
 	"fmt"
 
+	"github.com/makinj/go-le/internal/lifecycle"
 	"github.com/makinj/go-le/internal/module"
 )
 
@@ -21,10 +22,9 @@ type Config struct {
 }
 
 type Module struct {
-	Name    string
-	Wrap    *module.Wrap
-	errchan chan error
-	running chan struct{}
+	Name   string
+	Wrap   *module.Wrap
+	handle *lifecycle.Handle
 }
 
 func (c Config) GetName() string {
@@ -43,36 +43,40 @@ func NewModule(wrap *module.Wrap) (module.Module, error) {
 	}
 
 	name := c.GetName()
+
+	handle, err := lifecycle.NewHandle()
+	if err != nil {
+		return nil, err
+	}
+
 	fmt.Printf("Creating Mock Module with Name='%s'\n", name)
 	return &Module{
-		Name:    name,
-		Wrap:    wrap,
-		errchan: make(chan error),
+		Name:   name,
+		Wrap:   wrap,
+		handle: handle,
 	}, nil
 }
 
 func (m *Module) Start() {
 	fmt.Printf("Starting Mock Module loop for Name='%s'\n", m.Name)
-	m.running = make(chan struct{})
-	go func() { m.errchan <- fmt.Errorf("test") }()
+	m.handle.ShouldStart()
+	m.handle.Started()
+	m.handle.AddError(fmt.Errorf("test1"))
 	return
 }
 
 func (m *Module) Stop() {
-	fmt.Printf("Starting Mock Module loop for Name='%s'\n", m.Name)
-	close(m.errchan)
+	fmt.Printf("Stopping Mock Module loop for Name='%s'\n", m.Name)
+	m.handle.ShouldStop()
+	m.handle.Stopped()
+	m.handle.AddError(fmt.Errorf("test2"))
 	return
 }
 
 func (m *Module) GetErrChan() chan error {
-	return m.errchan
+	return m.handle.GetErrChan()
 }
 
 func (m *Module) Running() bool {
-	select {
-	case <-m.errchan:
-		return false
-	default:
-		return true
-	}
+	return m.handle.GetIsRunning()
 }

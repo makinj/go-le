@@ -40,23 +40,58 @@ func main() {
 
 	//Start app
 	log.Println("Starting App")
-	errchan := a.Run()
+	a.Start()
+	errchan := a.GetErrChan()
 
-	//watch for signals and errors
-	select {
-	case <-sigChan:
-		log.Println("Received interrupt signal")
-		log.Println("Killing application...")
-		a.Kill()
+	for a.GetShouldRun() {
+		//watch for signals and errors
+		select {
+		case <-sigChan:
+			log.Println("Received interrupt signal")
+			log.Println("Killing application...")
+			go a.Stop()
 
-	case appErr := <-errchan:
-		if appErr != nil {
-			log.Printf("App received error: %s\n", appErr)
-			a.Kill()
+		case appErr := <-errchan:
+			if appErr != nil {
+				log.Printf("App received error: %s\n", appErr)
+				//a.Stop()
+			}
+		case <-(a.GetShouldRunChan()):
 		}
 	}
 
-	<-errchan
+	killed := false
+	for a.GetIsRunning() && !killed {
+		//watch for signals and errors
+		select {
+		case <-sigChan:
+			log.Println("Received interrupt signal")
+			killed = true
+		case appErr := <-errchan:
+			if appErr != nil {
+				log.Printf("App received error: %s\n", appErr)
+				//a.Stop()
+			}
+		case <-(a.GetIsRunningChan()):
+		}
+	}
+
+	outoferrs := false
+
+	for !outoferrs {
+		select {
+		case err, ok := <-errchan:
+			if !ok {
+				outoferrs = true
+			}
+			if err != nil {
+				log.Printf("App received error: %s\n", err)
+			}
+		default:
+			outoferrs = true
+		}
+
+	}
 
 	log.Println("App Finished!")
 }

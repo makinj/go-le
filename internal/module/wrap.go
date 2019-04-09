@@ -1,6 +1,8 @@
 package module
 
-import "fmt"
+import (
+	"github.com/makinj/go-le/internal/lifecycle"
+)
 
 type WrapConfig struct {
 	Type   string
@@ -31,44 +33,44 @@ type Wrap struct {
 	controller *Controller
 	manifest   *Manifest
 	modconf    map[string]interface{}
-	errchan    chan error
-	running    chan struct{}
 	module     Module
+	handle     *lifecycle.Handle
 }
 
 func NewWrap(cont *Controller, id string, man *Manifest, mconf map[string]interface{}) (*Wrap, error) {
-	return &Wrap{
+	handle, err := lifecycle.NewHandle()
+	if err != nil {
+		return nil, err
+	}
+
+	wrap := &Wrap{
 		id:         id,
 		manifest:   man,
 		modconf:    mconf,
 		controller: cont,
-	}, nil
+		handle:     handle,
+	}
+	return wrap, nil
 }
 
 func (w *Wrap) Start() {
-	w.errchan = make(chan error)
-	w.running = make(chan struct{})
-
+	w.handle.ShouldStart()
 	go w.loop()
 	return
 }
 
 func (w *Wrap) Running() bool {
-	select {
-	case <-w.running:
-		return false
-	default:
-		return true
-	}
+	return w.handle.GetIsRunning()
 }
 
 func (w *Wrap) loop() {
-	defer w.Stop()
+	defer w.handle.Stopped()
+	w.handle.Started()
 
-	for w.Running() {
+	for w.handle.GetShouldRun() {
 		m, err := w.manifest.NewModule(w)
 		if err != nil {
-			w.errchan <- err
+			w.handle.AddError(err)
 			return
 		}
 
@@ -76,18 +78,16 @@ func (w *Wrap) loop() {
 
 		w.module = m
 
-		for m.Running() {
-
+		for m.Running() && w.handle.GetShouldRun() {
 			select {
 			case err, ok := <-(m.GetErrChan()):
 				if err != nil && ok {
-					fmt.Println("wrap loop err: ", err)
-					w.errchan <- err
+					w.handle.AddError(err)
 				}
 				if !ok {
 					m.Stop()
 				}
-			case <-w.running:
+			case <-w.handle.ShouldRunChan:
 				m.Stop()
 			}
 		}
@@ -96,8 +96,7 @@ func (w *Wrap) loop() {
 }
 
 func (w *Wrap) Stop() {
-	close(w.running)
-	close(w.errchan)
+	w.handle.ShouldStop()
 	return
 }
 
@@ -106,7 +105,15 @@ func (w *Wrap) GetModuleConfigurer() (interface{}, error) {
 }
 
 func (w *Wrap) GetErrChan() chan error {
-	return w.errchan
+	return w.handle.GetErrChan()
+}
+
+func (w *Wrap) GetIsRunningChan() chan interface{} {
+	return w.handle.IsRunningChan
+}
+
+func (w *Wrap) GetId() string {
+	return w.id
 }
 
 //TKTK add invoke function

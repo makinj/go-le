@@ -1,5 +1,10 @@
 package module
 
+import (
+	"fmt"
+	"sync"
+)
+
 type Controller struct {
 	FactoryRepo *FactoryRepo
 	Repo        *Repo
@@ -63,12 +68,20 @@ func (c *Controller) StartModules() {
 	return
 }
 
-func (c *Controller) StopModules() {
+func (c *Controller) StopModules() *sync.WaitGroup {
+	wg := &sync.WaitGroup{}
 	wraps := c.Repo.GetWraps()
 	for _, wrap := range wraps {
+		wg.Add(1)
+		fmt.Printf("stopping module: %s\n", wrap.GetId())
 		wrap.Stop()
+		go func(w *Wrap) {
+			<-w.GetIsRunningChan()
+			fmt.Printf("stopped module: %s\n", w.GetId())
+			wg.Done()
+		}(wrap)
 	}
-	return
+	return wg
 }
 
 func (c *Controller) GetErrChan() chan error {
