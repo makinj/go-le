@@ -68,8 +68,8 @@ func (m *Module) Start() {
 func (m *Module) Stop() {
 	fmt.Printf("Stopping Mock Module loop for Name='%s'\n", m.Name)
 	m.handle.ShouldStop()
-	m.handle.Stopped()
 	m.handle.AddError(fmt.Errorf("test2"))
+	m.handle.Stopped()
 	return
 }
 

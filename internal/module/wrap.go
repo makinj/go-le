@@ -91,6 +91,16 @@ func (w *Wrap) loop() {
 				m.Stop()
 			}
 		}
+
+		for m.Running() {
+			err, ok := <-(m.GetErrChan())
+			if err != nil && ok {
+				w.handle.AddError(err)
+			}
+			if !ok {
+				break
+			}
+		}
 	}
 	return
 }
