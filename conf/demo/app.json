@@ -1,12 +1,16 @@
 {
 	"name":"test",
 	"modules":[
+		
 		{
 			"type":"mock",
 			"config":{
-				"name":"module1"
+				"config":{
+					"name":"mock1"
+				}
 			},
-			"id":"module1"
+			"id":"mock1"
 		}
+		
 	]
 }

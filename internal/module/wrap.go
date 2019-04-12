@@ -78,7 +78,7 @@ func (w *Wrap) loop() {
 
 		w.module = m
 
-		for m.Running() && w.handle.GetShouldRun() {
+		for m.GetIsRunning() && w.handle.GetShouldRun() {
 			select {
 			case err, ok := <-(m.GetErrChan()):
 				if err != nil && ok {
@@ -92,13 +92,16 @@ func (w *Wrap) loop() {
 			}
 		}
 
-		for m.Running() {
-			err, ok := <-(m.GetErrChan())
-			if err != nil && ok {
-				w.handle.AddError(err)
-			}
-			if !ok {
-				break
+		for m.GetIsRunning() {
+			select {
+			case err, ok := <-(m.GetErrChan()):
+				if err != nil && ok {
+					w.handle.AddError(err)
+				}
+				if !ok {
+					break
+				}
+			case <-(m.GetIsRunningChan()):
 			}
 		}
 	}

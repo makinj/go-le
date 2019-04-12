@@ -75,6 +75,7 @@ func (h *Handle) Started() {
 }
 
 func (h *Handle) Stopped() {
+
 	h.mu.Lock()
 	if isopen(h.IsRunningChan) && h.IsRunningChan != nil {
 		close(h.IsRunningChan)
@@ -86,8 +87,16 @@ func (h *Handle) GetShouldRun() bool {
 	return isopen(h.ShouldRunChan)
 }
 
+func (h *Handle) GetShouldRunChan() chan interface{} {
+	return h.ShouldRunChan
+}
+
 func (h *Handle) GetIsRunning() bool {
 	return isopen(h.IsRunningChan)
+}
+
+func (h *Handle) GetIsRunningChan() chan interface{} {
+	return h.IsRunningChan
 }
 
 func isopen(c chan interface{}) bool {

@@ -3,8 +3,8 @@ package mock
 import (
 	"fmt"
 
-	"github.com/makinj/go-le/internal/lifecycle"
 	"github.com/makinj/go-le/internal/module"
+	"github.com/makinj/go-le/modules/base"
 )
 
 var Manifest *module.Manifest
@@ -13,25 +13,32 @@ func init() {
 	Manifest = module.NewManifest("mock", module.Constructor(NewModule), &Config{})
 }
 
+func NewModule(wrap *module.Wrap) (module.Module, error) {
+	m, err := NewMock(wrap)
+	return m, err
+}
+
 type Configurer interface {
-	GetName() string
+	base.Configurer
 }
 
 type Config struct {
-	Name string
+	base.Config
 }
 
-type Module struct {
-	Name   string
-	Wrap   *module.Wrap
-	handle *lifecycle.Handle
+type Mock struct {
+	base.Module
+}
+
+type Mocker interface {
+	module.Module
 }
 
 func (c Config) GetName() string {
 	return c.Name
 }
 
-func NewModule(wrap *module.Wrap) (module.Module, error) {
+func NewMock(wrap *module.Wrap) (Mocker, error) {
 	ctmp, err := wrap.GetModuleConfigurer()
 	if err != nil {
 		return nil, err
@@ -42,41 +49,22 @@ func NewModule(wrap *module.Wrap) (module.Module, error) {
 		return nil, fmt.Errorf("Configurer does not implement module interface")
 	}
 
-	name := c.GetName()
-
-	handle, err := lifecycle.NewHandle()
+	b, err := base.MakeModule(wrap, c)
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("Creating Mock Module with Name='%s'\n", name)
-	return &Module{
-		Name:   name,
-		Wrap:   wrap,
-		handle: handle,
-	}, nil
+	m := &Mock{
+		b,
+	}
+	m.Module.Loop = m.loop
+	return m, nil
 }
 
-func (m *Module) Start() {
-	fmt.Printf("Starting Mock Module loop for Name='%s'\n", m.Name)
-	m.handle.ShouldStart()
-	m.handle.Started()
-	m.handle.AddError(fmt.Errorf("test1"))
+func (m *Mock) loop() {
+	defer m.Module.Stopped()
+	fmt.Printf("Mock module loop started\n")
+	for m.Module.GetShouldRun() {
+		<-m.GetShouldRunChan()
+	}
 	return
-}
-
-func (m *Module) Stop() {
-	fmt.Printf("Stopping Mock Module loop for Name='%s'\n", m.Name)
-	m.handle.ShouldStop()
-	m.handle.AddError(fmt.Errorf("test2"))
-	m.handle.Stopped()
-	return
-}
-
-func (m *Module) GetErrChan() chan error {
-	return m.handle.GetErrChan()
-}
-
-func (m *Module) Running() bool {
-	return m.handle.GetIsRunning()
 }
