@@ -9,27 +9,36 @@ import (
 
 type Loop func()
 
-type Configurer interface {
+type BaseConfigurer interface {
 	GetName() string
 }
 
-type Config struct {
-	Name string
+type BaseConfig struct {
+	Name string `json:"name"`
 }
 
 type Module struct {
 	*lifecycle.Handle
-	Name   string
-	Wrap   *module.Wrap
-	Config Configurer
-	Loop   Loop
+	Name       string
+	Wrap       *module.Wrap
+	BaseConfig BaseConfigurer
+	Loop       Loop
 }
 
-func (c Config) GetName() string {
+func (c BaseConfig) GetName() string {
 	return c.Name
 }
 
-func MakeModule(w *module.Wrap, c Configurer) (Module, error) {
+func MakeModule(w *module.Wrap) (Module, error) {
+	ctmp, err := w.GetModuleConfigurer()
+	if err != nil {
+		return Module{}, err
+	}
+
+	c, ok := ctmp.(BaseConfigurer)
+	if !ok {
+		return Module{}, fmt.Errorf("BaseConfigurer does not implement base module interface")
+	}
 
 	n := c.GetName()
 
@@ -40,11 +49,12 @@ func MakeModule(w *module.Wrap, c Configurer) (Module, error) {
 
 	fmt.Printf("Creating Module with Name='%s'\n", n)
 	m := Module{
-		Name:   n,
-		Wrap:   w,
-		Handle: h,
-		Config: c,
+		Name:       n,
+		Wrap:       w,
+		Handle:     h,
+		BaseConfig: c,
 	}
+	m.Loop = m.defaultLoop
 	return m, nil
 }
 

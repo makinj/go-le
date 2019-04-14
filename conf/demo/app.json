@@ -3,13 +3,19 @@
 	"modules":[
 		
 		{
-			"type":"mock",
+			"type":"ping",
 			"config":{
-				"config":{
-					"name":"mock1"
-				}
+				"name":"ping1",
+				"pongid":"pong1"
 			},
-			"id":"mock1"
+			"id":"ping1"
+		},
+		{
+			"type":"pong",
+			"config":{
+				"name":"pong1"
+			},
+			"id":"pong1"
 		}
 		
 	]

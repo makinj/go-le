@@ -7,6 +7,7 @@ import (
 	"github.com/makinj/go-le/internal/module"
 	"github.com/makinj/go-le/modules/mock"
 	"github.com/makinj/go-le/modules/ping"
+	"github.com/makinj/go-le/modules/pong"
 )
 
 //Configurer interfaces provide go-le apps with the information required to configure the various subcomponents
@@ -40,12 +41,11 @@ func New(c Configurer) (a *App, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error registering manifest with controller: %s", err)
 	}
-	/*
-		//TKTK load plugins from config here
-		cont.RegisterManifest(pong.Manifest)
-		if err != nil {
-			return nil, fmt.Errorf("Error registering manifest with controller: %s", err)
-		}*/
+	//TKTK load plugins from config here
+	cont.RegisterManifest(pong.Manifest)
+	if err != nil {
+		return nil, fmt.Errorf("Error registering manifest with controller: %s", err)
+	}
 
 	for _, mconf := range c.GetModules() {
 		err := cont.RegisterModule(mconf)
@@ -79,7 +79,7 @@ func (a *App) Start() {
 }
 
 func (a *App) handleErrs() {
-	for err := range a.controller.GetErrChan() {
+	for err := range a.controller.GetModulesErrChan() {
 		if err != nil {
 			a.handle.AddError(fmt.Errorf("Controller received error: %s\n", err))
 		}

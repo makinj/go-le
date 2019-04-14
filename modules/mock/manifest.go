@@ -19,11 +19,11 @@ func NewModule(wrap *module.Wrap) (module.Module, error) {
 }
 
 type Configurer interface {
-	base.Configurer
+	base.BaseConfigurer
 }
 
 type Config struct {
-	base.Config
+	base.BaseConfig
 }
 
 type Mock struct {
@@ -35,17 +35,7 @@ func (c Config) GetName() string {
 }
 
 func NewMock(wrap *module.Wrap) (*Mock, error) {
-	ctmp, err := wrap.GetModuleConfigurer()
-	if err != nil {
-		return nil, err
-	}
-
-	c, ok := ctmp.(Configurer)
-	if !ok {
-		return nil, fmt.Errorf("Configurer does not implement module interface")
-	}
-
-	b, err := base.MakeModule(wrap, c)
+	b, err := base.MakeModule(wrap)
 	if err != nil {
 		return nil, err
 	}

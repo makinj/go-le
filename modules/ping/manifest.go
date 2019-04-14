@@ -20,22 +20,27 @@ func NewModule(wrap *module.Wrap) (module.Module, error) {
 }
 
 type Configurer interface {
-	base.Configurer
+	base.BaseConfigurer
 	GetPongId() string
 }
 
 type Config struct {
-	base.Config
-	PongId string
+	base.BaseConfig
+	Name   string `json:"name"`
+	PongId string `json:"pongid"`
+}
+
+func (c Config) GetName() string {
+	return c.Name
+}
+
+func (c Config) GetPongId() string {
+	return c.PongId
 }
 
 type Ping struct {
 	base.Module
 	PongId string
-}
-
-func (c Config) GetName() string {
-	return c.Name
 }
 
 func NewPing(wrap *module.Wrap) (*Ping, error) {
@@ -46,12 +51,13 @@ func NewPing(wrap *module.Wrap) (*Ping, error) {
 
 	c, ok := ctmp.(Configurer)
 	if !ok {
-		return nil, fmt.Errorf("Configurer does not implement module interface")
+		fmt.Println(ctmp)
+		return nil, fmt.Errorf("Configurer does not implement ping config interface")
 	}
 
 	pongid := c.GetPongId()
 
-	b, err := base.MakeModule(wrap, c)
+	b, err := base.MakeModule(wrap)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +80,13 @@ func (p *Ping) loop() {
 		select {
 		case <-p.GetShouldRunChan():
 		case <-ticker.C:
-			go p.ping()
+			go func() {
+				err := p.ping()
+				if err != nil {
+					p.AddError(err)
+				}
+
+			}()
 		}
 
 	}
@@ -85,19 +97,22 @@ type Ponger interface {
 	Pong()
 }
 
-func (p *Ping) ping() {
-	ptmp, err := p.Wrap.GetRepo().GetModule(p.PongerId)
-	if err != nil {
-		p.AddError(fmt.Errorf("Cannot find module with Id: %s", p.PongerId))
-		return
-	}
+func (p *Ping) ping() error {
+	repo := p.Wrap.GetRepo()
 
-	jponger, ok := ptmp.(Ponger)
+	wchan := repo.ResolveWrap(p.PongId)
+
+	var ponger Ponger
+
+	w := <-wchan
+	ptmp := w.GetModule()
+	var ok bool
+	ponger, ok = ptmp.(Ponger)
 	if !ok {
-		p.AddError(fmt.Errorf("%s does not implement Ponger interface", p.PongerId))
-		return
+		return fmt.Errorf("%s does not implement Ponger interface", p.PongId)
 	}
 
 	fmt.Printf("Ping\n")
-	ponger.Pong()
+	go ponger.Pong()
+	return nil
 }

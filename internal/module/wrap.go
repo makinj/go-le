@@ -133,4 +133,8 @@ func (w *Wrap) GetController() *Controller {
 	return w.Controller
 }
 
+func (w *Wrap) GetModule() Module {
+	return w.module
+}
+
 //TKTK add invoke function
