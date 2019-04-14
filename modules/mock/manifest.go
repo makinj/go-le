@@ -30,15 +30,11 @@ type Mock struct {
 	base.Module
 }
 
-type Mocker interface {
-	module.Module
-}
-
 func (c Config) GetName() string {
 	return c.Name
 }
 
-func NewMock(wrap *module.Wrap) (Mocker, error) {
+func NewMock(wrap *module.Wrap) (*Mock, error) {
 	ctmp, err := wrap.GetModuleConfigurer()
 	if err != nil {
 		return nil, err

@@ -6,6 +6,7 @@ import (
 	"github.com/makinj/go-le/internal/lifecycle"
 	"github.com/makinj/go-le/internal/module"
 	"github.com/makinj/go-le/modules/mock"
+	"github.com/makinj/go-le/modules/ping"
 )
 
 //Configurer interfaces provide go-le apps with the information required to configure the various subcomponents
@@ -34,12 +35,12 @@ func New(c Configurer) (a *App, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error registering manifest with controller: %s", err)
 	}
+	//TKTK load plugins from config here
+	cont.RegisterManifest(ping.Manifest)
+	if err != nil {
+		return nil, fmt.Errorf("Error registering manifest with controller: %s", err)
+	}
 	/*
-		//TKTK load plugins from config here
-		cont.RegisterManifest(ping.Manifest)
-		if err != nil {
-			return nil, fmt.Errorf("Error registering manifest with controller: %s", err)
-		}
 		//TKTK load plugins from config here
 		cont.RegisterManifest(pong.Manifest)
 		if err != nil {

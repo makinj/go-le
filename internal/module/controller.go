@@ -84,8 +84,11 @@ func (c *Controller) StopModules() *sync.WaitGroup {
 	return wg
 }
 
-func (c *Controller) GetErrChan() chan error {
+func (c *Controller) GetModulesErrChan() chan error {
 	return c.ErrChan
+}
+func (c *Controller) GetRepo() *Repo {
+	return c.Repo
 }
 
 func (c *Controller) HandleWrapErrors(w *Wrap) {

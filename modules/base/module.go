@@ -52,7 +52,18 @@ func (m *Module) Start() {
 	fmt.Printf("Starting Module loop for Name='%s'\n", m.Name)
 	m.ShouldStart()
 	m.Started()
-	go m.Loop()
+	if m.Loop != nil {
+		go m.Loop()
+
+	} else {
+		go m.defaultLoop()
+	}
+	return
+}
+
+func (m *Module) defaultLoop() {
+	defer m.Stopped()
+	<-m.GetShouldRunChan()
 	return
 }
 

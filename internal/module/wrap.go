@@ -29,12 +29,12 @@ func (wc WrapConfig) GetConfig() map[string]interface{} {
 }
 
 type Wrap struct {
-	id         string
-	controller *Controller
-	manifest   *Manifest
-	modconf    map[string]interface{}
-	module     Module
-	handle     *lifecycle.Handle
+	*Controller
+	id       string
+	manifest *Manifest
+	modconf  map[string]interface{}
+	module   Module
+	handle   *lifecycle.Handle
 }
 
 func NewWrap(cont *Controller, id string, man *Manifest, mconf map[string]interface{}) (*Wrap, error) {
@@ -44,10 +44,10 @@ func NewWrap(cont *Controller, id string, man *Manifest, mconf map[string]interf
 	}
 
 	wrap := &Wrap{
+		Controller: cont,
 		id:         id,
 		manifest:   man,
 		modconf:    mconf,
-		controller: cont,
 		handle:     handle,
 	}
 	return wrap, nil
@@ -127,6 +127,10 @@ func (w *Wrap) GetIsRunningChan() chan interface{} {
 
 func (w *Wrap) GetId() string {
 	return w.id
+}
+
+func (w *Wrap) GetController() *Controller {
+	return w.Controller
 }
 
 //TKTK add invoke function
