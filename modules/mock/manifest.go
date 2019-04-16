@@ -10,7 +10,7 @@ import (
 var Manifest *module.Manifest
 
 func init() {
-	Manifest = module.NewManifest("mock", module.Constructor(NewModule), &Config{})
+	Manifest = module.NewManifest("mock", module.Constructor(NewModule))
 }
 
 func NewModule(wrap *module.Wrap) (module.Module, error) {
@@ -19,14 +19,14 @@ func NewModule(wrap *module.Wrap) (module.Module, error) {
 }
 
 type Configurer interface {
-	base.BaseConfigurer
+	base.Configurer
 }
 
 type Config struct {
-	base.BaseConfig
+	base.Config
 }
 
-type Mock struct {
+type Module struct {
 	base.Module
 }
 
@@ -34,21 +34,21 @@ func (c Config) GetName() string {
 	return c.Name
 }
 
-func NewMock(wrap *module.Wrap) (*Mock, error) {
+func NewMock(wrap *module.Wrap) (*Module, error) {
 	b, err := base.MakeModule(wrap)
 	if err != nil {
 		return nil, err
 	}
-	m := &Mock{
+	m := &Module{
 		b,
 	}
 	m.Module.Loop = m.loop
 	return m, nil
 }
 
-func (m *Mock) loop() {
+func (m *Module) loop() {
 	defer m.Module.Stopped()
-	fmt.Printf("Mock module loop started\n")
+	fmt.Printf("Module module loop started\n")
 	for m.Module.GetShouldRun() {
 		<-m.GetShouldRunChan()
 	}

@@ -11,7 +11,7 @@ import (
 var Manifest *module.Manifest
 
 func init() {
-	Manifest = module.NewManifest("ping", module.Constructor(NewModule), &Config{})
+	Manifest = module.NewManifest("ping", module.Constructor(NewModule))
 }
 
 func NewModule(wrap *module.Wrap) (module.Module, error) {
@@ -20,12 +20,12 @@ func NewModule(wrap *module.Wrap) (module.Module, error) {
 }
 
 type Configurer interface {
-	base.BaseConfigurer
+	base.Configurer
 	GetPongId() string
 }
 
 type Config struct {
-	base.BaseConfig
+	base.Config
 	Name   string `json:"name"`
 	PongId string `json:"pongid"`
 }
@@ -38,44 +38,39 @@ func (c Config) GetPongId() string {
 	return c.PongId
 }
 
-type Ping struct {
+type Module struct {
 	base.Module
 	PongId string
 }
 
-func NewPing(wrap *module.Wrap) (*Ping, error) {
-	ctmp, err := wrap.GetModuleConfigurer()
+func NewPing(w *module.Wrap) (*Module, error) {
+	c := &Config{}
+	err := w.MapModuleConfigurer(c)
 	if err != nil {
 		return nil, err
 	}
 
-	c, ok := ctmp.(Configurer)
-	if !ok {
-		fmt.Println(ctmp)
-		return nil, fmt.Errorf("Configurer does not implement ping config interface")
-	}
+	pid := c.GetPongId()
 
-	pongid := c.GetPongId()
-
-	b, err := base.MakeModule(wrap)
+	b, err := base.MakeModule(w)
 	if err != nil {
 		return nil, err
 	}
 
-	p := &Ping{
+	p := &Module{
 		Module: b,
-		PongId: pongid,
+		PongId: pid,
 	}
 	p.Module.Loop = p.loop
 	return p, nil
 }
 
-func (p *Ping) loop() {
+func (p *Module) loop() {
 	defer p.Module.Stopped()
 
 	ticker := time.NewTicker(1000000000)
 
-	fmt.Printf("Ping module loop started\n")
+	fmt.Printf("Module module loop started\n")
 	for p.Module.GetShouldRun() {
 		select {
 		case <-p.GetShouldRunChan():
@@ -97,7 +92,7 @@ type Ponger interface {
 	Pong()
 }
 
-func (p *Ping) ping() error {
+func (p *Module) ping() error {
 	repo := p.Wrap.GetRepo()
 
 	wchan := repo.ResolveWrap(p.PongId)

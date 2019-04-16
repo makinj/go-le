@@ -36,6 +36,7 @@ func New(c Configurer) (a *App, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error registering manifest with controller: %s", err)
 	}
+
 	//TKTK load plugins from config here
 	cont.RegisterManifest(ping.Manifest)
 	if err != nil {

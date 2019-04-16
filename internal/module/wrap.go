@@ -1,7 +1,10 @@
 package module
 
 import (
+	"fmt"
+
 	"github.com/makinj/go-le/internal/lifecycle"
+	"github.com/mitchellh/mapstructure"
 )
 
 type WrapConfig struct {
@@ -113,8 +116,12 @@ func (w *Wrap) Stop() {
 	return
 }
 
-func (w *Wrap) GetModuleConfigurer() (interface{}, error) {
-	return w.manifest.MapConfig(w.modconf)
+func (w *Wrap) MapModuleConfigurer(conf interface{}) error {
+	err := mapstructure.Decode(w.modconf, conf)
+	if err != nil {
+		return fmt.Errorf("Failed to map config for Wrap(%s): %s", w.id, err)
+	}
+	return nil
 }
 
 func (w *Wrap) GetErrChan() chan error {

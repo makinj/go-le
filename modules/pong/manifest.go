@@ -10,7 +10,7 @@ import (
 var Manifest *module.Manifest
 
 func init() {
-	Manifest = module.NewManifest("pong", module.Constructor(NewModule), &Config{})
+	Manifest = module.NewManifest("pong", module.Constructor(NewModule))
 }
 
 func NewModule(wrap *module.Wrap) (module.Module, error) {
@@ -19,30 +19,30 @@ func NewModule(wrap *module.Wrap) (module.Module, error) {
 }
 
 type Configurer interface {
-	base.BaseConfigurer
+	base.Configurer
 }
 
 type Config struct {
-	base.BaseConfig
+	base.Config
 }
 
-type Pong struct {
+type Module struct {
 	base.Module
 }
 
-func NewPong(wrap *module.Wrap) (*Pong, error) {
+func NewPong(wrap *module.Wrap) (*Module, error) {
 	b, err := base.MakeModule(wrap)
 	if err != nil {
 		return nil, err
 	}
 
-	p := &Pong{
+	p := &Module{
 		Module: b,
 	}
 	return p, nil
 }
 
-func (p *Pong) Pong() {
+func (p *Module) Pong() {
 	fmt.Printf("Pong\n")
 	return
 }
