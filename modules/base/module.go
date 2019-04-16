@@ -14,7 +14,7 @@ type Configurer interface {
 }
 
 type Config struct {
-	Name string `json:"name"`
+	Name string `json:"Name"`
 }
 
 type Module struct {

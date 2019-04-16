@@ -3,20 +3,21 @@
 	"modules":[
 		
 		{
-			"type":"ping",
+			"type":"barcode",
 			"config":{
-				"name":"ping1",
-				"pongid":"pong1"
+				"name":"barcode1",
+				"receiverid":"s1",
+				"filename":"/dev/serial/by-id/usb-USB_Vir_USB_Virtual_COM-if00"
 			},
-			"id":"ping1"
+			"id":"bc1"
 		},
 		{
-			"type":"pong",
+			"type":"sink",
 			"config":{
-				"name":"pong1"
+				"name":"sink1"
 			},
-			"id":"pong1"
+			"id":"s1"
 		}
-		
+
 	]
 }

@@ -26,12 +26,7 @@ type Configurer interface {
 
 type Config struct {
 	base.Config
-	Name   string `json:"name"`
-	PongId string `json:"pongid"`
-}
-
-func (c Config) GetName() string {
-	return c.Name
+	PongId string `json:"PongId"`
 }
 
 func (c Config) GetPongId() string {
