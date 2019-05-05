@@ -1,4 +1,4 @@
-package barcode
+package serial
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// A device is an object representing a barcode device.
+// A device is an object representing a serial device.
 type device struct {
 	deviceFile *os.File      // Open file object for the serial device
 	buffer     *bytes.Buffer // Buffer to store the characters read from the device
@@ -20,7 +20,7 @@ func NewDevice(filename string) (this *device, err error) {
 	dev_file, err := os.OpenFile(filename, os.O_RDONLY, 0)
 	//TODO: add something to close files when stopped
 	if err != nil {
-		return nil, fmt.Errorf("Error opening barcode device file='%s' error='%s'", filename, err)
+		return nil, fmt.Errorf("Error opening serial device file='%s' error='%s'", filename, err)
 	}
 
 	//Create device
@@ -42,7 +42,7 @@ func (this *device) syncMessages() (err error) {
 	// Read from serial device
 	_, err = this.deviceFile.Read(buf)
 	if err != nil {
-		return fmt.Errorf("Error syncing barcode device messages: %s", err)
+		return fmt.Errorf("Error syncing serial device messages: %s", err)
 	}
 
 	//trim null bytes
@@ -105,7 +105,7 @@ func (this *device) Run() (chan string, chan error) {
 func (this *device) run(outchan chan string, errchan chan error) {
 	//begin loop
 	for {
-		//sync messages with barcode device
+		//sync messages with serial device
 
 		err := this.syncMessages()
 		if err != nil {
@@ -116,7 +116,7 @@ func (this *device) run(outchan chan string, errchan chan error) {
 		messages := this.popNewMessages()
 
 		for _, message := range messages {
-			// make barcode event
+			// make serial event
 			outchan <- message
 		}
 	}

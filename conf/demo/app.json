@@ -3,21 +3,71 @@
 	"modules":[
 		
 		{
-			"type":"barcode",
+			"type":"serial",
 			"config":{
 				"name":"barcode1",
-				"receiverid":"s1",
+				"receiverid":"barcode-route",
 				"filename":"/dev/serial/by-id/usb-USB_Vir_USB_Virtual_COM-if00"
 			},
-			"id":"bc1"
+			"id":"barcode-reader"
+		},
+		{
+			"type":"router",
+			"config":{
+				"key":"message",
+				"default":"sink1",
+				"mappings":{
+					"https://vmutti.com/light/office":"officelight:toggle",
+					"072838314727":"sink2"
+				}
+			},
+			"id":"barcode-route"
+		},
+		{
+			"type":"router",
+			"config":{
+				"key":"daship",
+				"mappings":{
+					"192.168.99.32":"officelight"
+				}
+			},
+			"id":"dash-route"
+		},
+		{
+			"type":"dash",
+			"config":{
+				"interface":"192.168.99.1"
+			},
+			"id":"dash"
+		},
+		{
+			"type":"hue-bridge",
+			"config":{
+				"name":"hue-bridge",
+				"ip":"192.168.65.32",
+				"key":""
+			},
+			"id":"hue-bridge"
+		},
+		{
+			"type":"hue-light",
+			"config":{
+				"bridgeid":"hue-bridge",
+				"index":0
+			},
+			"id":"officelight"
 		},
 		{
 			"type":"sink",
 			"config":{
-				"name":"sink1"
 			},
-			"id":"s1"
+			"id":"sink1"
+		},
+		{
+			"type":"sink",
+			"config":{
+			},
+			"id":"sink2"
 		}
-
 	]
 }

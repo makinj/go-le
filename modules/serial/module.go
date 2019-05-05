@@ -1,4 +1,4 @@
-package barcode
+package serial
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 var Manifest *module.Manifest
 
 func init() {
-	Manifest = module.NewManifest("barcode", module.Constructor(Constructor))
+	Manifest = module.NewManifest("serial", module.Constructor(Constructor))
 }
 
 func Constructor(wrap *module.Wrap) (module.Module, error) {
@@ -104,6 +104,10 @@ type Receiver interface {
 
 type Barcode struct {
 	value string
+}
+
+func (b *Barcode) GetValue() string {
+	return b.value
 }
 
 func (m *Module) publishBarcode(val string) error {

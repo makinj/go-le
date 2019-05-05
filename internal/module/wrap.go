@@ -71,6 +71,12 @@ func (w *Wrap) loop() {
 	w.handle.Started()
 
 	for w.handle.GetShouldRun() {
+		if w.manifest == nil {
+			//fmt.Println("No Manifest found for module.")
+			w.handle.AddError(fmt.Errorf("[%s]\tCannot find module type definition", w.id))
+			return
+		}
+
 		m, err := w.manifest.NewModule(w)
 		if err != nil {
 			w.handle.AddError(err)
