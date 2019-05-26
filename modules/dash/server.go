@@ -10,13 +10,19 @@ import (
 // A server is an object representing a dash server.
 type server struct {
 	lastTriggered map[string]time.Time
+	listenAddress string
 }
 
 // Creates and initializes a server
 func NewServer(iface string, port uint) (this *server, err error) {
 	lt := make(map[string]time.Time)
+	la := fmt.Sprintf("%s:%d", iface, port)
+
 	//Create server
-	this = &server{lastTriggered: lt}
+	this = &server{
+		lastTriggered: lt,
+		listenAddress: la,
+	}
 
 	return this, nil
 }
@@ -31,7 +37,7 @@ func (this *server) Run() (chan string, chan error) {
 func (this *server) run(outchan chan string, errchan chan error) {
 	defer close(outchan)
 	defer close(errchan)
-	ln, err := net.Listen("tcp", "192.168.99.1:443")
+	ln, err := net.Listen("tcp", this.listenAddress)
 	if err != nil {
 		errchan <- err
 	} else {
@@ -48,15 +54,18 @@ func (this *server) run(outchan chan string, errchan chan error) {
 }
 
 func (this *server) handleConnection(conn net.Conn, outchan chan string, errchan chan error) {
+	conn.Close()
 	ts := time.Now()
+	fmt.Println("---------")
+	fmt.Println(ts)
 	raddr := conn.RemoteAddr().String()
 	rhost := strings.Split(raddr, ":")[0]
 	last, found := this.lastTriggered[rhost]
-	if found && ts.Sub(last).Nanoseconds() < 40000000 {
+	if found && ts.Sub(last).Nanoseconds() > 40000000 {
+		fmt.Println(last)
 		fmt.Println(ts.Sub(last).Nanoseconds())
-		outchan <- rhost
+		go func(o chan string, r string) { o <- r }(outchan, rhost)
 	}
 	this.lastTriggered[rhost] = ts
-	conn.Close()
 	return
 }
