@@ -31,7 +31,7 @@ func (this *server) Run() (chan string, chan error) {
 func (this *server) run(outchan chan string, errchan chan error) {
 	defer close(outchan)
 	defer close(errchan)
-	ln, err := net.Listen("tcp", "127.0.0.1:8443")
+	ln, err := net.Listen("tcp", "192.168.99.1:443")
 	if err != nil {
 		errchan <- err
 	} else {
@@ -52,7 +52,7 @@ func (this *server) handleConnection(conn net.Conn, outchan chan string, errchan
 	raddr := conn.RemoteAddr().String()
 	rhost := strings.Split(raddr, ":")[0]
 	last, found := this.lastTriggered[rhost]
-	if found && ts.Sub(last).Nanoseconds() > 0 {
+	if found && ts.Sub(last).Nanoseconds() < 40000000 {
 		fmt.Println(ts.Sub(last).Nanoseconds())
 		outchan <- rhost
 	}
