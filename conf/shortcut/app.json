@@ -1,0 +1,24 @@
+{
+	"name":"test",
+	"modules":[
+		{
+			"type":"dash",
+			"config":{
+				"name":"dash",
+				"interface":"192.168.99.1",
+				"port":443,
+				"receiverId":"hue-bridge"
+			},
+			"id":"dash"
+		},
+		{
+			"type":"hue-bridge",
+			"config":{
+				"name":"hue-bridge",
+				"ip":"192.168.65.32",
+				"key":""
+			},
+			"id":"hue-bridge"
+		}
+	]
+}

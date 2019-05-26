@@ -2,6 +2,7 @@ package module
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/makinj/go-le/internal/lifecycle"
 	"github.com/mitchellh/mapstructure"
@@ -36,6 +37,7 @@ type Wrap struct {
 	id       string
 	manifest *Manifest
 	modconf  map[string]interface{}
+	modulemu sync.Mutex
 	module   Module
 	handle   *lifecycle.Handle
 }
@@ -53,6 +55,7 @@ func NewWrap(cont *Controller, id string, man *Manifest, mconf map[string]interf
 		modconf:    mconf,
 		handle:     handle,
 	}
+	wrap.modulemu.Lock()
 	return wrap, nil
 }
 
@@ -84,9 +87,7 @@ func (w *Wrap) loop() {
 		}
 
 		m.Start()
-
 		w.module = m
-
 		for m.GetIsRunning() && w.handle.GetShouldRun() {
 			select {
 			case err, ok := <-(m.GetErrChan()):

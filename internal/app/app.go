@@ -5,6 +5,7 @@ import (
 
 	"github.com/makinj/go-le/internal/lifecycle"
 	"github.com/makinj/go-le/internal/module"
+	"github.com/makinj/go-le/modules/dash"
 	"github.com/makinj/go-le/modules/mock"
 	"github.com/makinj/go-le/modules/philipshue/bridge"
 	"github.com/makinj/go-le/modules/ping"
@@ -32,6 +33,12 @@ func New(c Configurer) (a *App, err error) {
 	cont, err := module.NewController()
 	if err != nil {
 		return nil, err
+	}
+
+	//TKTK load plugins from config here
+	cont.RegisterManifest(dash.Manifest)
+	if err != nil {
+		return nil, fmt.Errorf("Error registering manifest with controller: %s", err)
 	}
 
 	//TKTK load plugins from config here

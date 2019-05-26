@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/amimof/huego"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/makinj/go-le/internal/module"
 	"github.com/makinj/go-le/modules/base"
 )
@@ -12,7 +11,7 @@ import (
 var Manifest *module.Manifest
 
 func init() {
-	Manifest = module.NewManifest("bridge", module.Constructor(NewModule))
+	Manifest = module.NewManifest("hue-bridge", module.Constructor(NewModule))
 }
 
 func NewModule(wrap *module.Wrap) (module.Module, error) {
@@ -22,34 +21,61 @@ func NewModule(wrap *module.Wrap) (module.Module, error) {
 
 type Configurer interface {
 	base.Configurer
+	GetIp() string
+	GetKey() string
 }
 
 type Config struct {
 	base.Config
+	Ip  string
+	Key string
+}
+
+func (c Config) GetIp() string {
+	return c.Ip
+}
+
+func (c Config) GetKey() string {
+	return c.Key
 }
 
 type Module struct {
 	base.Module
+	Ip  string
+	Key string
 }
 
-func NewBridge(wrap *module.Wrap) (*Module, error) {
-	b, err := base.MakeModule(wrap)
+func NewBridge(w *module.Wrap) (*Module, error) {
+
+	c := &Config{}
+	err := w.MapModuleConfigurer(c)
+	if err != nil {
+		return &Module{}, err
+	}
+
+	b, err := base.MakeModule(w)
 	if err != nil {
 		return nil, err
 	}
 
+	ip := c.GetIp()
+
+	k := c.GetKey()
+
 	p := &Module{
 		Module: b,
+		Ip:     ip,
+		Key:    k,
 	}
 	return p, nil
 }
 
 type message interface {
-	GetValue() string
+	//GetValue() string
 }
 
 func (m *Module) Receive(val interface{}) {
-	spew.Dump(val)
+	//spew.Dump(val)
 
 	_, ok := val.(message)
 	if !ok {
@@ -57,15 +83,12 @@ func (m *Module) Receive(val interface{}) {
 		return
 	}
 
-	bridge := huego.New("192.168.65.142", "")
-	fmt.Println("test")
+	bridge := huego.New(m.Ip, m.Key)
 	lights, err := bridge.GetLights()
-	fmt.Println("test")
 	if err != nil {
 		m.AddError(err)
 		return
 	}
-	fmt.Println("test")
 
 	v := lights[0].IsOn()
 
