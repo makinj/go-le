@@ -84,25 +84,23 @@ func (m *Module) Receive(val interface{}) {
 	}
 
 	bridge := huego.New(m.Ip, m.Key)
-	lights, err := bridge.GetLights()
+	lights, err := bridge.GetGroup(8)
 	if err != nil {
 		m.AddError(err)
 		return
 	}
 
-	v := lights[0].IsOn()
+	v := lights.IsOn()
 
-	for _, l := range lights {
-		if v {
-			err = l.Off()
-		} else {
-			err = l.On()
-		}
+	if v {
+		err = lights.Off()
+	} else {
+		err = lights.On()
+	}
 
-		if err != nil {
-			m.AddError(err)
-			return
-		}
+	if err != nil {
+		m.AddError(err)
+		return
 	}
 	return
 }
