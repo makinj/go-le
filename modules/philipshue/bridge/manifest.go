@@ -74,33 +74,55 @@ type message interface {
 	//GetValue() string
 }
 
+type controllable interface {
+	IsOn() bool
+	On() error
+	Off() error
+}
+
 func (m *Module) Receive(val interface{}) {
 	//spew.Dump(val)
 
-	_, ok := val.(message)
+	msg, ok := val.(message)
 	if !ok {
 		m.AddError(fmt.Errorf("message does not implement message interface"))
 		return
 	}
 
 	bridge := huego.New(m.Ip, m.Key)
-	lights, err := bridge.GetGroup(8)
+
+	fmt.Println(bridge.GetGroups())
+	fmt.Println(bridge.GetLights())
+
+	var target controllable
+	var err error
+
+	switch msg {
+	default:
+		target, err = bridge.GetGroup(8)
+
+	}
+
 	if err != nil {
 		m.AddError(err)
 		return
 	}
 
-	v := lights.IsOn()
+	v := target.IsOn()
 
 	if v {
-		err = lights.Off()
+		err := target.Off()
+		if err != nil {
+			m.AddError(err)
+			return
+		}
 	} else {
-		err = lights.On()
+		err := target.On()
+		if err != nil {
+			m.AddError(err)
+			return
+		}
 	}
 
-	if err != nil {
-		m.AddError(err)
-		return
-	}
 	return
 }

@@ -43,39 +43,47 @@ func main() {
 	a.Start()
 	errchan := a.GetErrChan()
 
+	//wait for a quit signal
 	for a.GetShouldRun() {
 		//watch for signals and errors
 		select {
+		//quit signal from user
 		case <-sigChan:
 			log.Println("Received interrupt signal")
 			log.Println("Killing application...")
 			go a.Stop()
 
+		//error from app
 		case appErr := <-errchan:
 			if appErr != nil {
 				log.Printf("App received error: %s\n", appErr)
-				//a.Stop()
 			}
+		//app should no longer run
 		case <-(a.GetShouldRunChan()):
 		}
 	}
 
+	log.Println("Cleaning up app")
 	killed := false
 	for a.GetIsRunning() && !killed {
-		//watch for signals and errors
+		//watch for  signals and errors
 		select {
+		//second quit signal from user
 		case <-sigChan:
 			log.Println("Received interrupt signal")
 			killed = true
+		//error from app
 		case appErr := <-errchan:
 			if appErr != nil {
 				log.Printf("App received error: %s\n", appErr)
 				//a.Stop()
 			}
+		//app is no longer running
 		case <-(a.GetIsRunningChan()):
 		}
 	}
 
+	//flush errors
 	outoferrs := false
 
 	for !outoferrs {

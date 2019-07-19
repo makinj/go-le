@@ -9,24 +9,12 @@ import (
 
 type Loop func()
 
-type Configurer interface {
-	GetName() string
-}
-
-type Config struct {
-	Name string `json:"Name"`
-}
-
 type Module struct {
 	*lifecycle.Handle
 	Name   string
 	Wrap   *module.Wrap
 	Config Configurer
 	Loop   Loop
-}
-
-func (c Config) GetName() string {
-	return c.Name
 }
 
 func MakeModule(w *module.Wrap) (Module, error) {

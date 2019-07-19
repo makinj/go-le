@@ -29,14 +29,14 @@ type Module struct {
 	base.Module
 }
 
-func NewRouter(wrap *module.Wrap) (*Module, error) {
+func NewRouter(w *module.Wrap) (*Module, error) {
 	c := &Config{}
 	err := w.MapModuleConfigurer(c)
 	if err != nil {
 		return nil, err
 	}
 
-	b, err := base.MakeModule(wrap)
+	b, err := base.MakeModule(w)
 	if err != nil {
 		return nil, err
 	}

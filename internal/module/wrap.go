@@ -32,6 +32,9 @@ func (wc WrapConfig) GetConfig() map[string]interface{} {
 	return wc.Config
 }
 
+type Wrapper interface {
+}
+
 type Wrap struct {
 	*Controller
 	id       string

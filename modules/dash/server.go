@@ -61,7 +61,7 @@ func (this *server) handleConnection(conn net.Conn, outchan chan string, errchan
 	raddr := conn.RemoteAddr().String()
 	rhost := strings.Split(raddr, ":")[0]
 	last, found := this.lastTriggered[rhost]
-	if !found || ts.Sub(last).Nanoseconds() > 100000000 {
+	if !found || ts.Sub(last).Nanoseconds() > 1000000000 {
 		fmt.Println(last)
 		fmt.Println(ts.Sub(last).Nanoseconds())
 		go func(o chan string, r string) { o <- r }(outchan, rhost)
