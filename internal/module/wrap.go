@@ -46,9 +46,14 @@ type Wrap struct {
 }
 
 func NewWrap(cont *Controller, id string, man *Manifest, mconf map[string]interface{}) (*Wrap, error) {
+
+	if man == nil {
+		return nil, fmt.Errorf("[%s]\tCannot find module type definition", id)
+	}
+
 	handle, err := lifecycle.NewHandle()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("[%s]\tError making lifecycle handle: %s", id, err)
 	}
 
 	wrap := &Wrap{
@@ -58,7 +63,13 @@ func NewWrap(cont *Controller, id string, man *Manifest, mconf map[string]interf
 		modconf:    mconf,
 		handle:     handle,
 	}
-	wrap.modulemu.Lock()
+
+	m, err := man.NewModule(wrap)
+	if err != nil {
+		return nil, fmt.Errorf("[%s]\tError making module: %s", id, err)
+	}
+	wrap.module = m
+
 	return wrap, nil
 }
 
@@ -89,8 +100,8 @@ func (w *Wrap) loop() {
 			return
 		}
 
-		m.Start()
 		w.module = m
+		m.Start()
 		for m.GetIsRunning() && w.handle.GetShouldRun() {
 			select {
 			case err, ok := <-(m.GetErrChan()):
@@ -151,7 +162,6 @@ func (w *Wrap) GetController() *Controller {
 }
 
 func (w *Wrap) GetModule() Module {
+
 	return w.module
 }
-
-//TKTK add invoke function

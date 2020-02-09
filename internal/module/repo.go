@@ -26,8 +26,6 @@ func NewRepo() (r *Repo, err error) {
 func (r *Repo) Register(w *Wrap) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	//TKTK Lock here
-	//TKTK defer Unlock here
 
 	id := w.id
 
@@ -48,19 +46,16 @@ func (r *Repo) Register(w *Wrap) error {
 }
 
 func (r *Repo) GetWraps() map[string]*Wrap {
-	r.mu.Lock()
-	defer r.mu.Unlock()
 	return r.wrappers
 }
 
-func (r *Repo) ResolveWrap(id string) chan *Wrap {
-	res := make(chan *Wrap)
+func (r *Repo) ResolveWrap(id string) (res chan *Wrap) {
+	res = make(chan *Wrap)
 	go r.resolveWrap(res, id)
 	return res
 }
 
 func (r *Repo) resolveWrap(res chan *Wrap, id string) {
-
 	r.mu.Lock()
 
 	w, exists := r.wrappers[id]
@@ -73,7 +68,6 @@ func (r *Repo) resolveWrap(res chan *Wrap, id string) {
 		}
 
 		r.mu.Unlock()
-
 		<-wait
 		r.mu.Lock()
 

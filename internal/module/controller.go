@@ -50,7 +50,7 @@ func (c *Controller) RegisterModule(wconf WrapConfigurer) error {
 	}
 
 	go c.HandleWrapErrors(w)
-
+	//TKTK we sometimes register things early here
 	err = c.Repo.Register(w)
 	if err != nil {
 		return err

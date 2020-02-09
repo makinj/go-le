@@ -3,7 +3,6 @@ package source
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/makinj/go-le/internal/module"
 	"github.com/makinj/go-le/modules/base"
@@ -75,23 +74,12 @@ func NewSource(w *module.Wrap) (*Module, error) {
 func (p *Module) loop() {
 	defer p.Module.Stopped()
 
-	ticker := time.NewTicker(1000000000)
-
-	fmt.Printf("Module module loop started\n")
-	for p.Module.GetShouldRun() {
-		select {
-		case <-p.GetShouldRunChan():
-		case <-ticker.C:
-			go func() {
-				err := p.send()
-				if err != nil {
-					p.AddError(err)
-				}
-
-			}()
-		}
-
+	err := p.send()
+	if err != nil {
+		p.AddError(err)
 	}
+	<-p.GetShouldRunChan()
+
 	return
 }
 
