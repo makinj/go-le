@@ -23,10 +23,15 @@ type Configurer interface {
 
 type Config struct {
 	base.Config
+	Rules []Rule `json:"Rules"`
+}
+
+type Rule struct {
 }
 
 type Module struct {
 	base.Module
+	Rules []Rule
 }
 
 func NewRouter(w *module.Wrap) (*Module, error) {
@@ -43,11 +48,13 @@ func NewRouter(w *module.Wrap) (*Module, error) {
 
 	p := &Module{
 		Module: b,
+		Rules:  c.Rules,
 	}
 	return p, nil
 }
 
 func (p *Module) Receive(val interface{}) {
 	spew.Dump(val)
+	spew.Dump(p.Rules)
 	return
 }

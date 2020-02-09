@@ -3,6 +3,7 @@ package dash
 import (
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/makinj/go-le/internal/module"
 	"github.com/makinj/go-le/modules/base"
 )
@@ -137,6 +138,9 @@ func (m *Module) publishPress(val string) error {
 		return fmt.Errorf("%s does not implement Receiver interface", m.ReceiverId)
 	}
 
-	go r.Receive(&Press{ip: val})
+	msg := make(map[string]interface{})
+	msg["Ip"] = val
+	spew.Dump(msg)
+	go r.Receive(msg)
 	return nil
 }

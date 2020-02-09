@@ -83,23 +83,35 @@ type controllable interface {
 func (m *Module) Receive(val interface{}) {
 	//spew.Dump(val)
 
-	msg, ok := val.(message)
+	msg, ok := val.(map[string]interface{})
 	if !ok {
 		m.AddError(fmt.Errorf("message does not implement message interface"))
 		return
 	}
 
+	grouptmp, ok := msg["Group"]
+	if !ok {
+		m.AddError(fmt.Errorf("message does not have 'Group' key"))
+		return
+	}
+
+	group, ok := grouptmp.(float64)
+	if !ok {
+		m.AddError(fmt.Errorf("group type %T isn't an int and can't be used", grouptmp))
+		return
+	}
+
 	bridge := huego.New(m.Ip, m.Key)
 
-	fmt.Println(bridge.GetGroups())
-	fmt.Println(bridge.GetLights())
+	//fmt.Println(bridge.GetGroups())
+	//fmt.Println(bridge.GetLights())
 
 	var target controllable
 	var err error
 
 	switch msg {
 	default:
-		target, err = bridge.GetGroup(8)
+		target, err = bridge.GetGroup(int(group))
 
 	}
 
